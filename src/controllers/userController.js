@@ -1,0 +1,84 @@
+import { User } from "../models/User.js"
+import apiErrors from "../classes/apiErrors.js"
+import jwtController from "../middlewares/jwtConfig.js"
+import bcrypt from "bcrypt"
+
+const userController = {
+    create: async (req, res) => {
+        const user = req.body;
+        const password = user.password;
+        try{
+            const hashedPassword = await bcrypt.hash(password, 10);
+            user.password = hashedPassword;
+            const newUser = await User.create(user);
+            if(!newUser) throw new apiErrors("Falha ao cadastrar usuário.", 404);
+            res.status(201).json({ message: "Usuário criado com sucesso!"});
+        } catch (error) {
+            res.status(error.statusCode || 500).json({ message: `Falha ao cadastrar usuário: ${error.message}`});
+        }
+    },
+
+    login: async (req, res, next) => {
+        try{
+            const email = req.body.email
+            const password = req.body.password
+            let foundUser = await User.find({email: email})
+            let user = foundUser[0];
+            if(!user) throw new apiErrors("Email ou senha inválidos. (1)", 401);
+            if(!(await bcrypt.compare(password, user.password))) throw new apiErrors("Email ou senha inválidos. (2)", 401);
+            const id = user._id
+            const token = jwtController.sign(id)
+            return res.json({ auth: true, token: token });
+        } catch (error){
+            res.status(error.statusCode || 500).json({ message: `${error.message}` });
+        }
+    },
+
+    list: async (req, res) => {
+        const userList = await User.find({});
+        try{
+            if(userList.length === 0) throw new apiErrors("Não existem usuários cadastrados.");
+            return res.json(userList);
+        } catch (error){
+            res.status(error.statusCode || 500).json({ message: `Falha ao carregar usuários: ${error.message}` });
+        }
+    },
+
+    listOne: async (req, res) => {
+        jwtController.verifyJWT(req, res)
+        const id = req.params.id;
+        let user = await User.findById(id).lean();
+        try{
+            if(!user) throw new apiErrors("Usuário não encontrado.", 404);
+            delete user.password;
+            return res.json(user);
+        } catch (error) {
+            res.status(error.statusCode || 500).json({ message: `Falha ao carregar usuário: ${error.message}`});
+        }
+    },
+
+    update: async (req, res) => {
+        const id = req.params.id;
+        let user = await User.indByIdAndUpdate(id, req.body);
+        try{
+            if(!user) throw new apiErrors("Usuário não encontrado.", 404);
+            res.status(200).json("Usuário atualizado com sucesso!");
+        } catch (error) {
+            res.status(error.statusCode || 500).json({ message: `Falha ao atualizar usuário: ${error.message}`});
+        }
+    },
+
+    delete: async (req, res) => {
+        const id = req.params.id;
+        let user = await User.findByIdAndDelete(id);
+        try{
+            if(!user) throw new apiErrors("Usuário não encontrado.");
+            res.status(200).json({ message: "Usuário deletado com sucesso!"});
+        } catch (error) {
+            res.status(error.statusCode || 500).json({ message: `Falha ao excluir usuário: ${error.message}`})
+        }
+    }
+
+}
+
+export default userController;
