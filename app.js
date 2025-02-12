@@ -1,4 +1,5 @@
 import express from "express"
+import cors from 'cors' // Add this import
 import databaseConnect from "./src/database/connection.js"
 import routes from './index.js'
 
@@ -12,8 +13,14 @@ connection.once("open", () =>{
     console.log("conexão feita com sucesso.")
 });
 
-
 const app = express();
+
+// Add CORS middleware before routes
+app.use(cors({
+    origin: 'http://localhost:5173', // Your frontend URL
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization']
+}));
 
 routes(app);
 

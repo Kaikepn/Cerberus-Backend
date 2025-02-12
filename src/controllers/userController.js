@@ -23,14 +23,14 @@ const userController = {
 
     login: async (req, res, next) => {
         try{
-            const email = req.body.email
-            const password = req.body.password
-            let foundUser = await User.find({email: email})
+            const email = req.body.email;
+            const password = req.body.password;
+            let foundUser = await User.find({email: email});
             let user = foundUser[0];
             if(!user) throw new apiErrors("Email ou senha inválidos. (1)", 401);
             if(!(await bcrypt.compare(password, user.password))) throw new apiErrors("Email ou senha inválidos. (2)", 401);
-            const id = user._id
-            const token = jwtController.sign(id)
+            const id = user._id;
+            const token = jwtController.sign(id);
             return res.json({ auth: true, token: token });
         } catch (error){
             res.status(error.statusCode || 500).json({ message: `${error.message}` });
@@ -61,7 +61,7 @@ const userController = {
             res.status(error.statusCode || 500).json({ message: `${error.message}` });
         }
     },
-    
+
     loginCPF: async (req, res) => {
         try {
             let cpf = req.params.cpf;
@@ -91,7 +91,7 @@ const userController = {
     list: async (req, res) => {
         const userList = await User.find({});
         try{
-            if(userList.length === 0) throw new apiErrors("Não existem usuários cadastrados.");
+            if(userList.length === 0) throw new apiErrors("Não existem usuários cadastrados.", 404);
             return res.json(userList);
         } catch (error){
             res.status(error.statusCode || 500).json({ message: `Falha ao carregar usuários: ${error.message}` });
@@ -128,10 +128,10 @@ const userController = {
         const id = req.params.id;
         let user = await User.findByIdAndDelete(id);
         try{
-            if(!user) throw new apiErrors("Usuário não encontrado.");
+            if(!user) throw new apiErrors("Usuário não encontrado.", 404);
             res.status(200).json({ message: "Usuário deletado com sucesso!"});
         } catch (error) {
-            res.status(error.statusCode || 500).json({ message: `Falha ao excluir usuário: ${error.message}`})
+            res.status(error.statusCode || 500).json({ message: `Falha ao excluir usuário: ${error.message}`});
         }
     }
 
