@@ -1,6 +1,6 @@
 import { User } from "../models/User.js"
 import apiErrors from "../classes/apiErrors.js"
-import jwtController from "../middlewares/jwtConfig.js"
+import { jwtController } from "../middlewares/jwtConfig.js"
 import bcrypt from "bcrypt"
 
 const userController = {
@@ -45,21 +45,38 @@ const userController = {
     },
 
     listOne: async (req, res) => {
-        jwtController.verifyJWT(req, res)
-        const id = req.params.id;
-        let user = await User.findById(id).lean();
-        try{
-            if(!user) throw new apiErrors("Usuário não encontrado.", 404);
+        try {
+            const id = req.params.id;
+            let user = await User.findById(id).lean();    
+            if (!user) {
+                throw new apiErrors("Usuário não encontrado.", 404);
+            }    
             delete user.password;
             return res.json(user);
+    
         } catch (error) {
-            res.status(error.statusCode || 500).json({ message: `Falha ao carregar usuário: ${error.message}`});
+            res.status(error.statusCode || 500).json({ message: `Falha ao carregar usuário: ${error.message}` });
         }
     },
 
+    
+    // listOne: async (req, res) => {
+    //     console.log(jwtController.verifyJWT(req, res))
+    //     //if(jwtController.verifyJWT(req, res)) throw new apiErrors("Failed to authenticate token.", 400)
+    //     const id = req.params.id;
+    //     let user = await User.findById(id).lean();
+    //     try{
+    //         if(!user) throw new apiErrors("Usuário não encontrado.", 404);
+    //         delete user.password;
+    //         return res.json(user);
+    //     } catch (error) {
+    //         res.status(error.statusCode || 500).json({ message: `Falha ao carregar usuário: ${error.message}`});
+    //     }
+    // },
+
     update: async (req, res) => {
         const id = req.params.id;
-        let user = await User.indByIdAndUpdate(id, req.body);
+        let user = await User.findByIdAndUpdate(id, req.body);
         try{
             if(!user) throw new apiErrors("Usuário não encontrado.", 404);
             res.status(200).json("Usuário atualizado com sucesso!");
