@@ -4,7 +4,7 @@ import apiErrors from "../classes/apiErrors.js";
 const jwtController = {
     sign(id){
         const token = jwt.sign({ id }, process.env.SECRET, {
-            expiresIn: 3000
+            expiresIn: "24h"
         });
         return token
     }

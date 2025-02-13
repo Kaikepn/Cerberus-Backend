@@ -31,7 +31,6 @@ const productController = {
         } catch (error) {
             res.status(400).json({ message: `${error.message}`});
         }
-        //testar erro
     },
 
     update: async (req, res) => {
