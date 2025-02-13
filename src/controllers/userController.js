@@ -9,10 +9,16 @@ const userController = {
         const password = user.password;
         const cpf = user.cpf;
         try{
+            let lastThreeDigits = cpf.slice(-3)
+            let userFound = await checkCPF(cpf, lastThreeDigits)
+            if (userFound) {
+                throw new apiErrors("CPF inválido", 401);
+            }
             const hashedCPF = await bcrypt.hash(cpf, 10);
             const hashedPassword = await bcrypt.hash(password, 10);
             user.cpf = hashedCPF;
             user.password = hashedPassword;
+            user.lastThree = lastThreeDigits;
             const newUser = await User.create(user);
             if(!newUser) throw new apiErrors("Falha ao cadastrar usuário.", 404);
             res.status(201).json({ message: "Usuário criado com sucesso!"});
@@ -65,18 +71,8 @@ const userController = {
     loginCPF: async (req, res) => {
         try {
             let cpf = req.params.cpf;
-            let foundUsers = await User.find({});
-            if (foundUsers.length === 0) {
-                throw new apiErrors("Nenhum usuário encontrado", 404);
-            }
-            let userFound = null;    
-            for (let i = 0; i < foundUsers.length && userFound == null; i++) {
-                const user = foundUsers[i];
-                const isMatch = await bcrypt.compare(cpf, user.cpf);
-                if (isMatch) {
-                    userFound = user;
-                }
-            }
+            let lastThreeDigits = cpf.slice(-3)
+            let userFound = await checkCPF(cpf, lastThreeDigits)
             if (!userFound) {
                 throw new apiErrors("CPF inválido", 401);
             }
@@ -133,8 +129,26 @@ const userController = {
         } catch (error) {
             res.status(error.statusCode || 500).json({ message: `Falha ao excluir usuário: ${error.message}`});
         }
-    }
+    },
 
+}
+
+async function checkCPF(cpf, lastThreeDigits){
+    let foundUsers = await User.find({
+        lastThree: { "$regex": `${lastThreeDigits}$`}
+    });
+    if (foundUsers.length === 0) {
+        return null
+    }
+    let userFound = null;    
+    for (let i = 0; i < foundUsers.length && userFound == null; i++) {
+        const user = foundUsers[i];
+        const isMatch = await bcrypt.compare(cpf, user.cpf);
+        if (isMatch) {
+            userFound = user;
+        }
+    }
+    return userFound
 }
 
 export default userController;
