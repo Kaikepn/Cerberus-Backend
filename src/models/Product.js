@@ -5,6 +5,11 @@ const productSchema = new mongoose.Schema({
     name: {type: String, required: true, unique: true},
     price: {type: Number, required: true},
     stock: {type: Number, default: 0, required: false},
+    img:
+    {
+        data: Buffer,
+        contentType: String
+    },
     isActive: {type: Boolean, default: true, required: false}
 }, {versionKey: false});
 
