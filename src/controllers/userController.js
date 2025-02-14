@@ -70,22 +70,20 @@ const userController = {
 
     loginCPF: async (req, res) => {
         try {
-            let cpf = req.params.cpf;
-            let lastThreeDigits = cpf.slice(-3)
-            let userFound = await checkCPF(cpf, lastThreeDigits)
+            const { cpf } = req.params;
+            const userFound = await checkCPF(cpf, cpf.slice(-3));    
             if (!userFound) {
                 throw new apiErrors("CPF inválido", 401);
-            }
-            const id = userFound._id;
-            const token = jwtController.sign(id);
-            return res.json({ auth: true, token: token });
+            }    
+            const token = jwtController.sign(userFound._id);
+            return res.json({ auth: true, token });
         } catch (error) {
-            res.status(error.statusCode || 500).json({ message: `${error.message}` });
+            res.status(error.statusCode || 500).json({ message: error.message });
         }
-    },
-
+    }
+,
     list: async (req, res) => {
-        const userList = await User.find({});
+        const userList = await User.find({isActive: true});
         try{
             if(userList.length === 0) throw new apiErrors("Não existem usuários cadastrados.", 404);
             return res.json(userList);
@@ -133,22 +131,33 @@ const userController = {
 
 }
 
-async function checkCPF(cpf, lastThreeDigits){
-    let foundUsers = await User.find({
-        lastThree: { "$regex": `${lastThreeDigits}$`}
+
+async function checkCPF(cpf, lastThreeDigits) {
+    const users = await User.find({
+        lastThree: { "$regex": `${lastThreeDigits}$` }
     });
-    let userFound = null;    
-    if (foundUsers.length === 0) {
-        return userFound
-    }
-    for (let i = 0; i < foundUsers.length && userFound == null; i++) {
-        const user = foundUsers[i];
+    const userFound = await Promise.all(users.map(async (user) => {
         const isMatch = await bcrypt.compare(cpf, user.cpf);
-        if (isMatch) {
-            userFound = user;
-        }
-    }
-    return userFound
+        return isMatch ? user : null;
+    }));
+    return userFound.find(user => user !== null) || null;
 }
+
+// async function checkCPF(cpf, lastThreeDigits){
+//     let foundUsers = await User.find({
+//         lastThree: { "$regex": `${lastThreeDigits}$`}
+//     });
+//     let userFound = null;    
+//     if (foundUsers.length === 0) {
+//         return userFound
+//     }
+//     for (let i = 0; i < foundUsers.length && userFound == null; i++) {
+//         const user = foundUsers[i];
+//         const isMatch = await bcrypt.compare(cpf, user.cpf);
+//         if (isMatch)   userFound = user;
+//     }
+//     return userFound
+// }
+
 
 export default userController;

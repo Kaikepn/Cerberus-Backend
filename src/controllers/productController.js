@@ -4,7 +4,7 @@ import apiErrors from "../classes/apiErrors.js";
 const productController = {
 
     list: async (req, res) => {
-        let productList = await Product.find({});
+        let productList = await Product.find({isActive: true});
         try{
             if(productList.length === 0) throw new apiErrors("Não existem produtos no banco de dados", 400);
             return res.json(productList);
