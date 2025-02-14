@@ -1,6 +1,6 @@
 import express from "express"
-import users from "./routes/userRoutes.js"
 import products from "./routes/productRoutes.js"
+import users from "./routes/userRoutes.js"
 import logs from "./routes/logRoutes.js"
 
 const routes = (app) => {

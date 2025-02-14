@@ -1,6 +1,6 @@
 import { User } from "../models/User.js"
-import apiErrors from "../classes/apiErrors.js"
 import { jwtController } from "../middlewares/jwtConfig.js"
+import apiErrors from "../classes/apiErrors.js"
 import bcrypt from "bcrypt"
 
 const userController = {
@@ -27,7 +27,7 @@ const userController = {
         }
     },
 
-    login: async (req, res, next) => {
+    login: async (req, res) => {
         try{
             const email = req.body.email;
             const password = req.body.password;
@@ -137,10 +137,10 @@ async function checkCPF(cpf, lastThreeDigits){
     let foundUsers = await User.find({
         lastThree: { "$regex": `${lastThreeDigits}$`}
     });
-    if (foundUsers.length === 0) {
-        return null
-    }
     let userFound = null;    
+    if (foundUsers.length === 0) {
+        return userFound
+    }
     for (let i = 0; i < foundUsers.length && userFound == null; i++) {
         const user = foundUsers[i];
         const isMatch = await bcrypt.compare(cpf, user.cpf);

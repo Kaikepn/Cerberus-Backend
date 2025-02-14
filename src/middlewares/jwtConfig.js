@@ -1,5 +1,4 @@
 import jwt from "jsonwebtoken"
-import apiErrors from "../classes/apiErrors.js";
 
 const jwtController = {
     sign(id){

@@ -1,10 +1,10 @@
 import mongoose from "mongoose"
-import { userSchema } from "./User.js";
 
 const logSchema = new mongoose.Schema({
     id: {type: mongoose.Schema.Types.ObjectId},
-    user: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
+    user: { type: mongoose.Schema.Types.ObjectId, ref: "user", required: true },
     points: {type: Number, required: true},
+    product: { type: mongoose.Schema.Types.ObjectId, ref: "product", required: false },
     activityDate: {type: Date, default: 0, required: false},
 }, {versionKey: false});
 
