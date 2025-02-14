@@ -2,13 +2,14 @@ import mongoose from "mongoose"
 
 const userSchema = new mongoose.Schema({
     id: {type: mongoose.Schema.Types.ObjectId},
-    cpf: {type: String, required: true},
+    cpf: {type: String, required: true, unique: true},
+    lastThree: {type: String, required: true},
     username: {type: String, required: true},
     email: {type: String, required: true, unique: true},
     password: {type: String, required: true},
     metalDiscarted: {type: Number, default: 0, required: false},
     paperDiscarted: {type: Number, default: 0, required: false},
-    //pontos?
+    points: {type: Number, default: 0, required: false},
     //isAdmin
     isActive: {type: Boolean, default: true, required: false}
 }, {versionKey: false});
