@@ -9,8 +9,21 @@ const logController = {
         try{
             const product = req.body.product
             let log = req.body;
-            if(!req.body.user) throw new apiErrors("Usuário deve ser fornecido.", 400);
-            const foundUser = await User.findById(req.body.user);
+            if(!log.user) throw new apiErrors("Usuário deve ser fornecido.", 400);
+            const foundUser = await User.findById(log.user);
+            if (!foundUser) throw new apiErrors("Usuário não encontrado.", 400);
+            const updatedPoints = (parseInt(foundUser.points) + parseInt(log.points));
+            if(updatedPoints < 0) throw new apiErrors("Saldo inválido.", 400)
+            let plasticDiscarted = (parseInt(foundUser.plasticDiscarted))
+            let metalDiscarted = parseInt(foundUser.metalDiscarted)
+            if(log.plasticDiscarted) plasticDiscarted += parseInt(log.plasticDiscarted)
+            if(log.plasticDiscarted) metalDiscarted += parseInt(log.metalDiscarted)            
+            const updatedUser = await User.findByIdAndUpdate(
+                foundUser._id,
+                { points: updatedPoints, 
+                  metalDiscarted: metalDiscarted,
+                  plasticDiscarted: plasticDiscarted},
+                { new: true });
             if(product) {
                 const productFound = await Product.findById(product);
                 let updatedStock = (parseInt(productFound.stock) - 1);
@@ -29,14 +42,6 @@ const logController = {
                     { new: true}
                 );
             }
-            if (!foundUser) throw new apiErrors("Usuário não encontrado.", 400);
-            const updatedPoints = (parseInt(foundUser.points) + parseInt(req.body.points));
-            if(updatedPoints < 0) throw new apiErrors("Saldo inválido.", 400)
-            const updatedUser = await User.findByIdAndUpdate(
-                foundUser._id,
-                { points: updatedPoints },
-                { new: true }
-            );
             log.updatedUser = updatedUser
             log.activityDate = Date.now()
             log = await Log.create(log);

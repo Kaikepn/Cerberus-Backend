@@ -8,7 +8,7 @@ const userSchema = new mongoose.Schema({
     email: {type: String, required: true, unique: true},
     password: {type: String, required: true},
     metalDiscarted: {type: Number, default: 0, required: false},
-    paperDiscarted: {type: Number, default: 0, required: false},
+    plasticDiscarted: {type: Number, default: 0, required: false},
     points: {type: Number, default: 0, required: false},
     //isAdmin
     isActive: {type: Boolean, default: true, required: false}

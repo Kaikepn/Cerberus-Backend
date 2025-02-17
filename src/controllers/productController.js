@@ -29,17 +29,21 @@ const productController = {
             const product = await Product.create(req.body);
             res.status(201).json({ msg: "produto adicionado com sucesso!"});
         } catch (error) {
+            if(error.message.includes("duplicate key error collection: Cerberus.products index: name_1 dup key: { name:"))
+                return res.status(400).json({ message: `Falha ao cadastrar produto: Produto com esse nome já cadastrado.`});
             res.status(400).json({ message: `${error.message}`});
         }
     },
 
     update: async (req, res) => {
         const id = req.params.id;
-        const product = await Product.findByIdAndUpdate(id, req.body);
         try{    
+            const product = await Product.findByIdAndUpdate(id, req.body);
             if(!product) throw new apiErrors("id não encontrado", 404);
             res.status(200).json({ msg: "produto atualizado"});
         } catch (error) {
+            if(error.message.includes("duplicate key error collection: Cerberus.products index: name_1 dup key: { name:"))
+                return res.status(400).json({ message: `Falha ao atualizar produto: Produto com esse nome já cadastrado.`});
             res.status(error.statusCode).json({ message: `${error.message}` });
         }
 

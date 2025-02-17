@@ -23,6 +23,8 @@ const userController = {
             if(!newUser) throw new apiErrors("Falha ao cadastrar usuário.", 404);
             res.status(201).json({ message: "Usuário criado com sucesso!"});
         } catch (error) {
+            if(error.message.includes("duplicate key error collection: Cerberus.users index: email_1 dup key: { email:"))
+                return res.status(400).json({ message: `Falha ao cadastrar usuário: email já cadastrado.`});
             res.status(error.statusCode || 500).json({ message: `Falha ao cadastrar usuário: ${error.message}`});
         }
     },
@@ -43,31 +45,7 @@ const userController = {
         }
     },
 
-    updatePoints: async (req, res) =>{
-        try {
-            let cpf = req.params.cpf;
-            let foundUsers = await User.find({});
-            if (foundUsers.length === 0) {
-                throw new apiErrors("Nenhum usuário encontrado", 404);
-            }
-            let userFound = null;    
-            for (let i = 0; i < foundUsers.length && userFound == null; i++) {
-                const user = foundUsers[i];
-                const isMatch = await bcrypt.compare(cpf, user.cpf);
-                if (isMatch) {
-                    userFound = user;
-                }
-            }
-            if (!userFound) {
-                throw new apiErrors("CPF inválido", 401);
-            }
-            const user = await User.findByIdAndUpdate(userFound._id, req.body);
-            res.status(200).json("Pontos foram recebidos com sucesso!");
-        } catch (error) {
-            res.status(error.statusCode || 500).json({ message: `${error.message}` });
-        }
-    },
-
+    
     loginCPF: async (req, res) => {
         try {
             const { cpf } = req.params;
@@ -80,10 +58,10 @@ const userController = {
         } catch (error) {
             res.status(error.statusCode || 500).json({ message: error.message });
         }
-    }
-,
+    },
+
     list: async (req, res) => {
-        const userList = await User.find({isActive: true});
+    const userList = await User.find({isActive: true});
         try{
             if(userList.length === 0) throw new apiErrors("Não existem usuários cadastrados.", 404);
             return res.json(userList);
@@ -101,7 +79,7 @@ const userController = {
             }    
             delete user.password;
             return res.json(user);
-    
+            
         } catch (error) {
             res.status(error.statusCode || 500).json({ message: `Falha ao carregar usuário: ${error.message}` });
         }
@@ -109,11 +87,13 @@ const userController = {
 
     update: async (req, res) => {
         const id = req.params.id;
-        let user = await User.findByIdAndUpdate(id, req.body);
         try{
+        let user = await User.findByIdAndUpdate(id, req.body);
             if(!user) throw new apiErrors("Usuário não encontrado.", 404);
             res.status(200).json("Usuário atualizado com sucesso!");
         } catch (error) {
+            if(error.message.includes("duplicate key error collection: Cerberus.users index: email_1 dup key:"))
+                return res.status(400).json({ message: `Falha ao atualizar usuário: email já cadastrado.`});
             res.status(error.statusCode || 500).json({ message: `Falha ao atualizar usuário: ${error.message}`});
         }
     },
@@ -129,12 +109,37 @@ const userController = {
         }
     },
 
+    // updatePoints: async (req, res) =>{
+    //     try {
+    //         let cpf = req.params.cpf;
+    //         let foundUsers = await User.find({});
+    //         if (foundUsers.length === 0) {
+    //             throw new apiErrors("Nenhum usuário encontrado", 404);
+    //         }
+    //         let userFound = null;    
+    //         for (let i = 0; i < foundUsers.length && userFound == null; i++) {
+    //             const user = foundUsers[i];
+    //             const isMatch = await bcrypt.compare(cpf, user.cpf);
+    //             if (isMatch) {
+    //                 userFound = user;
+    //             }
+    //         }
+    //         if (!userFound) {
+    //             throw new apiErrors("CPF inválido", 401);
+    //         }
+    //         const user = await User.findByIdAndUpdate(userFound._id, req.body);
+    //         res.status(200).json("Pontos foram recebidos com sucesso!");
+    //     } catch (error) {
+    //         res.status(error.statusCode || 500).json({ message: `${error.message}` });
+    //     }
+    // },
 }
 
 
 async function checkCPF(cpf, lastThreeDigits) {
     const users = await User.find({
-        lastThree: { "$regex": `${lastThreeDigits}$` }
+        lastThree: { "$regex": `${lastThreeDigits}$` },
+        isActive: true
     });
     const userFound = await Promise.all(users.map(async (user) => {
         const isMatch = await bcrypt.compare(cpf, user.cpf);
@@ -142,22 +147,5 @@ async function checkCPF(cpf, lastThreeDigits) {
     }));
     return userFound.find(user => user !== null) || null;
 }
-
-// async function checkCPF(cpf, lastThreeDigits){
-//     let foundUsers = await User.find({
-//         lastThree: { "$regex": `${lastThreeDigits}$`}
-//     });
-//     let userFound = null;    
-//     if (foundUsers.length === 0) {
-//         return userFound
-//     }
-//     for (let i = 0; i < foundUsers.length && userFound == null; i++) {
-//         const user = foundUsers[i];
-//         const isMatch = await bcrypt.compare(cpf, user.cpf);
-//         if (isMatch)   userFound = user;
-//     }
-//     return userFound
-// }
-
 
 export default userController;
