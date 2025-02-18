@@ -46,6 +46,7 @@ const productController = {
     //         res.status(400).json({ message: `${error.message}`});
     //     }
     // },
+    
     create: async (req, res) => {
         try {
             const { name, price, stock } = req.body;
