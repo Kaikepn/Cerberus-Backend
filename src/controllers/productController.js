@@ -10,10 +10,8 @@ const productController = {
             if (productList.length === 0) {
                 throw new apiErrors("Não existem produtos no banco de dados", 400);
             }
-    
-            // Converter imagens para Base64 antes de enviar ao frontend
             const formattedProducts = productList.map(product => ({
-                ...product._doc,  // Mantém os outros campos
+                ...product._doc,
                 img: product.img?.data
                     ? `data:${product.img.contentType};base64,${product.img.data.toString("base64")}`
                     : null
@@ -22,6 +20,16 @@ const productController = {
             return res.json(formattedProducts);
         } catch (error) {
             res.status(error.statusCode || 500).json({ message: error.message });
+        }
+    },
+
+    listData: async (req, res) => {
+        let productList = await Product.find({isActive: true}, '-img');
+        try{
+            if(productList.length === 0) throw new apiErrors("Não existem produtos no banco de dados", 400);
+            return res.json(productList);
+        } catch (error) {
+            res.status(error.statusCode).json({ message: `${error.message}` });
         }
     },
 
@@ -35,39 +43,24 @@ const productController = {
             res.status(error.statusCode).json({ message: `${error.message}` });
         }
     },
-
-    // create: async (req, res) => {
-    //     try{
-    //         const product = await Product.create(req.body);
-    //         res.status(201).json({ msg: "produto adicionado com sucesso!"});
-    //     } catch (error) {
-    //         if(error.message.includes("duplicate key error collection: Cerberus.products index: name_1 dup key: { name:"))
-    //             return res.status(400).json({ message: `Falha ao cadastrar produto: Produto com esse nome já cadastrado.`});
-    //         res.status(400).json({ message: `${error.message}`});
-    //     }
-    // },
     
     create: async (req, res) => {
         try {
             const { name, price, stock } = req.body;
-
             if (!req.file) {
                 throw new apiErrors("Imagem é obrigatória", 400);
             }
-
             const newProduct = new Product({
                 name,
                 price,
                 stock,
                 img: {
-                    data: req.file.buffer, // Buffer da imagem
-                    contentType: req.file.mimetype, // Tipo do arquivo
+                    data: req.file.buffer,
+                    contentType: req.file.mimetype,
                 }
             });
-
             await newProduct.save();
             res.status(201).json({ msg: "Produto adicionado com sucesso!" });
-
         } catch (error) {
             if (error.message.includes("duplicate key error collection")) {
                 return res.status(400).json({ message: "Produto com esse nome já cadastrado." });

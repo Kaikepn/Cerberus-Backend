@@ -6,11 +6,11 @@ import cors from 'cors'
 const connection = await databaseConnect();
 
 connection.on("error", (error) =>{
-    console.log("erro de conexão")
+    console.log("erro de conexão");
 });
 
 connection.once("open", () =>{
-    console.log("conexão feita com sucesso.")
+    console.log("conexão feita com sucesso.");
 });
 
 const app = express();
