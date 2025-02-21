@@ -7,6 +7,8 @@ const logSchema = new mongoose.Schema({
     plasticDiscarted: {type: Number, required: false},
     points: {type: Number, required: true},
     product: { type: mongoose.Schema.Types.ObjectId, ref: "product", required: false },
+    code: {type: String, required: true},
+    redeemed: {type: Boolean, default: false, required: false},
     activityDate: {type: Date, default: 0, required: false},
 }, {versionKey: false});
 
