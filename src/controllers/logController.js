@@ -73,6 +73,17 @@ const logController = {
             res.status(error.statusCode).json({ message: `${error.message}` });
         }
     },
+
+    listOneData: async (req, res) => {
+        const userId = req.params.id;
+        const log = await Log.find({user: userId}, '-img');
+        try{            
+            if(!log) throw new apiErrors("id não encontrado", 404);
+            return res.json(log);
+        } catch (error) {
+            res.status(error.statusCode).json({ message: `${error.message}` });
+        }
+    },
 }
 
 export default logController;

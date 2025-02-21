@@ -23,7 +23,7 @@ const userController = {
             if(!newUser) throw new apiErrors("Falha ao cadastrar usuário.", 404);
             res.status(201).json({ message: "Usuário criado com sucesso!"});
         } catch (error) {
-            if(error.message.includes("duplicate key error collection: Cerberus.users index: email_1 dup key: { email:"));
+            if(error.message.includes("duplicate key error collection: Cerberus.users index: email_1 dup key: { email:"))
                 return res.status(400).json({ message: `Falha ao cadastrar usuário: email já cadastrado.`});
             res.status(error.statusCode || 500).json({ message: `Falha ao cadastrar usuário: ${error.message}`});
         }
@@ -92,7 +92,7 @@ const userController = {
             if(!user) throw new apiErrors("Usuário não encontrado.", 404);
             res.status(200).json("Usuário atualizado com sucesso!");
         } catch (error) {
-            if(error.message.includes("duplicate key error collection: Cerberus.users index: email_1 dup key:"));
+            if(error.message.includes("duplicate key error collection: Cerberus.users index: email_1 dup key:"))
                 return res.status(400).json({ message: `Falha ao atualizar usuário: email já cadastrado.`});
             res.status(error.statusCode || 500).json({ message: `Falha ao atualizar usuário: ${error.message}`});
         }

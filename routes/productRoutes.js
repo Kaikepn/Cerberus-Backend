@@ -7,10 +7,10 @@ const routes = express.Router();
 
 //routes.post("/product", productController.create)
 routes.post("/product", upload.single("img"), productController.create);
-routes.get("/product", productController.list);
-routes.get("/product/data", verifyJWT, productController.listData);
-routes.get("/product/:id", verifyJWT, productController.listOne);
-routes.put("/product/:id", verifyJWT, productController.update);
-routes.delete("/product/:id", verifyJWT, productController.delete)
+routes.get("/product",  productController.list);
+routes.get("/product/data", productController.listData);
+routes.get("/product/:id", productController.listOne);
+routes.put("/product/:id", productController.update);
+routes.delete("/product/:id", productController.delete)
 
 export default routes;
