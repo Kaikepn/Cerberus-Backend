@@ -54,7 +54,7 @@ const logController = {
     
     list: async (req, res) => {
         const id = req.params.id;
-        let logList = await Log.find({user: id}).populate('product', '-stock');
+        let logList = await Log.find({user: id});
         try{
             if(logList.length === 0) throw new apiErrors(`Não existem logs para usuario ${id}`, 400);
             return res.json(logList);
