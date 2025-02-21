@@ -4,7 +4,7 @@ import { jwtController } from "../middlewares/jwtConfig.js"
 import apiErrors from "../classes/apiErrors.js"
 import bcrypt from "bcrypt"
 
-const userController = {
+const userServices = {
     create: async (req, res) => {
         const user = req.body;
         const password = user.password;
@@ -101,13 +101,14 @@ const userController = {
 
     delete: async (req, res) => {
         const id = req.params.id;
-        try {
-            let user = await User.findByIdAndDelete(id);
-            if (!user) throw new apiErrors("Usuário não encontrado.", 404);
-            await Log.deleteMany({ user: user._id });
-            res.status(200).json({ message: "Usuário e seus logs deletados com sucesso!" });
+        let user = await User.findByIdAndDelete(id);
+        try{
+            if(!user) throw new apiErrors("Usuário não encontrado.", 404);
+            let logs = await Log.find({user: user._id})
+            console.log(logs)
+            res.status(200).json({ message: "Usuário deletado com sucesso!"});
         } catch (error) {
-            res.status(error.statusCode || 500).json({ message: `Falha ao excluir usuário: ${error.message}` });
+            res.status(error.statusCode || 500).json({ message: `Falha ao excluir usuário: ${error.message}`});
         }
     },
 }
