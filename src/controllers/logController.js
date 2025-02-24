@@ -2,6 +2,7 @@ import { User } from "../models/User.js";
 import { Log } from "../models/Log.js"
 import { Product } from "../models/Product.js";
 import apiErrors from "../classes/apiErrors.js";
+import bcrypt from "bcrypt";
 
 const logController = {
 
@@ -9,6 +10,7 @@ const logController = {
         try{
             const product = req.body.product
             let log = req.body;
+            log.activityDate = new Date().toLocaleString();
             if(!log.user) throw new apiErrors("Usuário deve ser fornecido.", 400);
             const foundUser = await User.findById(log.user);
             if (!foundUser) throw new apiErrors("Usuário não encontrado.", 400);
@@ -42,9 +44,11 @@ const logController = {
                     { isActive: "false"},
                     { new: true}
                 );
+                const hash = await bcrypt.hash(log.activityDate, 5);
+                log.code = hash.substring(hash.length - 5);
+                log.redeemed = false;
             }
-            log.updatedUser = updatedUser;
-            log.activityDate = Date.now();
+            log.updatedUser = updatedUser;                        
             log = await Log.create(log);
             res.status(201).json({ msg: "log criado com sucesso!"});
         } catch (error) {
