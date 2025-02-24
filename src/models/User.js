@@ -11,7 +11,6 @@ const userSchema = new mongoose.Schema({
     plasticDiscarted: {type: Number, default: 0, required: false},
     points: {type: Number, default: 0, required: false},
     //isAdmin
-    isActive: {type: Boolean, default: true, required: false}
 }, {versionKey: false});
 
 const User = mongoose.model("user", userSchema);
