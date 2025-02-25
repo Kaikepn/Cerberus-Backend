@@ -2,7 +2,7 @@ import { Product } from "../models/Product.js";
 import apiErrors from "../classes/apiErrors.js";
 
 class ProductService {
-    static async listProducts() {
+    static async list() {
         const productList = await Product.find({ isActive: true });
         if (productList.length === 0) {
             throw new apiErrors("Não existem produtos no banco de dados", 400);
@@ -15,7 +15,7 @@ class ProductService {
         }));
     }
 
-    static async listProductsData() {
+    static async listData() {
         const productList = await Product.find({ isActive: true }, "-img");
         if (productList.length === 0) {
             throw new apiErrors("Não existem produtos no banco de dados", 400);
@@ -23,7 +23,7 @@ class ProductService {
         return productList;
     }
 
-    static async getProductById(id) {
+    static async getById(id) {
         const product = await Product.findById(id);
         if (!product) {
             throw new apiErrors("ID não encontrado", 404);
@@ -31,7 +31,7 @@ class ProductService {
         return product;
     }
 
-    static async createProduct(data, file) {
+    static async create(data, file) {
         if (!file) {
             throw new apiErrors("Imagem é obrigatória", 400);
         }
@@ -45,7 +45,7 @@ class ProductService {
         await newProduct.save();
     }
 
-    static async updateProduct(id, updateData) {
+    static async update(id, updateData) {
         const product = await Product.findByIdAndUpdate(id, updateData, { new: true });
         if (!product) {
             throw new apiErrors("ID não encontrado", 404);
@@ -53,7 +53,7 @@ class ProductService {
         return product;
     }
 
-    static async deleteProduct(id) {
+    static async delete(id) {
         const product = await Product.findByIdAndDelete(id);
         if (!product) {
             throw new apiErrors("ID não encontrado", 404);

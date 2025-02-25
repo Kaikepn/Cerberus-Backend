@@ -5,7 +5,7 @@ import apiErrors from "../classes/apiErrors.js";
 import bcrypt from "bcrypt";
 
 class LogService {
-    static async createLog(logData) {
+    static async create(logData) {
         logData.activityDate = new Date().toLocaleString();
         if (!logData.user) throw new apiErrors("Usuário deve ser fornecido.", 400);
         
@@ -49,16 +49,38 @@ class LogService {
         return await Log.create(logData);
     }
     
-    static async listLogsByUser(userId) {
+    static async listByUser(userId) {
         const logList = await Log.find({ user: userId });
         if (logList.length === 0) throw new apiErrors(`Não existem logs para usuario ${userId}`, 400);
         return logList;
     }
     
-    static async findLogByCode(code) {
+    static async findByCode(code) {
         const log = await Log.find({ code });
         if (log.length === 0) throw new apiErrors("Código não encontrado", 404);
         return log;
+    }
+
+    static async listByRedeemed(userId) {
+        console.log(userId)
+        const log = await Log.find({ user: userId, redeemed: true });
+        console.log()
+        if (log.length === 0) throw new apiErrors("Nenhum produtro foi resgatado", 404);
+        return log;
+    }
+
+    static async listByNotRedeemed(code) {
+        const log = await Log.find({ redeemed: false });
+        if (log.length === 0) throw new apiErrors("Nenhuma troca foi realizada ", 404);
+        return log;
+    }
+
+    static async update(id) {
+        const product = await Log.findByIdAndUpdate(id, {redeemed: true}, { new: true });
+        if (!product) {
+            throw new apiErrors("ID não encontrado", 404);
+        }
+        return product;
     }
 }
 

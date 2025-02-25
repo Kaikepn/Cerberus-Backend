@@ -5,7 +5,7 @@ import apiErrors from "../classes/apiErrors.js"
 import bcrypt from "bcrypt"
 
 class UserService {
-    static async createUser(userData) {
+    static async create(userData) {
         const { cpf, password } = userData;
         const lastThreeDigits = cpf.slice(-3);
         const userFound = await this.checkCPF(cpf, lastThreeDigits);
@@ -22,7 +22,7 @@ class UserService {
         return newUser;
     }
 
-    static async loginUser(email, password) {
+    static async login(email, password) {
         const foundUser = await User.findOne({ email });
         if (!foundUser || !(await bcrypt.compare(password, foundUser.password))) {
             throw new apiErrors("Email ou senha inválidos", 401);
@@ -31,33 +31,34 @@ class UserService {
     }
 
     static async loginWithCPF(cpf) {
+        console.log(cpf)
         const userFound = await this.checkCPF(cpf, cpf.slice(-3));
         if (!userFound) throw new apiErrors("CPF inválido", 401);
         return jwtController.sign(userFound._id);
     }
 
-    static async getAllUsers() {
+    static async getAll() {
         const users = await User.find();
         if (users.length === 0) throw new apiErrors("Não existem usuários cadastrados.", 404);
         return users;
     }
 
-    static async getUserById(id) {
+    static async getById(id) {
         const user = await User.findById(id).lean();
         if (!user) throw new apiErrors("Usuário não encontrado.", 404);
         delete user.password;
         return user;
     }
 
-    static async updateUser(id, data) {
-        await Log.deleteMany({ user: id });
+    static async update(id, data) {
         if(data.password) data.password = await bcrypt.hash(data.password, 10);
         const user = await User.findByIdAndUpdate(id, data);
         if (!user) throw new apiErrors("Usuário não encontrado.", 404);
         return user;
     }
 
-    static async deleteUser(id) {
+    static async delete(id) {
+        await Log.deleteMany({ user: id });
         const user = await User.findByIdAndDelete(id);
         if (!user) throw new apiErrors("Usuário não encontrado.", 404);
         await Log.deleteMany({ user: id });

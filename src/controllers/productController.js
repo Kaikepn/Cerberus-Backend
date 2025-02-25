@@ -1,9 +1,18 @@
 import ProductService from "../services/productService.js";
 
 const productController = {
+    create: async (req, res) => {
+        try {
+            await ProductService.create(req.body, req.file);
+            res.status(201).json({ msg: "Produto adicionado com sucesso!" });
+        } catch (error) {
+            res.status(400).json({ message: error.message });
+        }
+    },
+    
     list: async (req, res) => {
         try {
-            const products = await ProductService.listProducts();
+            const products = await ProductService.list();
             res.json(products);
         } catch (error) {
             res.status(error.statusCode || 500).json({ message: error.message });
@@ -12,7 +21,7 @@ const productController = {
 
     listData: async (req, res) => {
         try {
-            const products = await ProductService.listProductsData();
+            const products = await ProductService.listData();
             res.json(products);
         } catch (error) {
             res.status(error.statusCode || 500).json({ message: error.message });
@@ -21,25 +30,17 @@ const productController = {
 
     listOne: async (req, res) => {
         try {
-            const product = await ProductService.getProductById(req.params.id);
+            const product = await ProductService.getById(req.params.id);
             res.json(product);
         } catch (error) {
             res.status(error.statusCode || 500).json({ message: error.message });
         }
     },
 
-    create: async (req, res) => {
-        try {
-            await ProductService.createProduct(req.body, req.file);
-            res.status(201).json({ msg: "Produto adicionado com sucesso!" });
-        } catch (error) {
-            res.status(400).json({ message: error.message });
-        }
-    },
 
     update: async (req, res) => {
         try {
-            await ProductService.updateProduct(req.params.id, req.body);
+            await ProductService.update(req.params.id, req.body);
             res.status(200).json({ msg: "Produto atualizado" });
         } catch (error) {
             res.status(error.statusCode || 400).json({ message: error.message });
@@ -48,7 +49,7 @@ const productController = {
 
     delete: async (req, res) => {
         try {
-            await ProductService.deleteProduct(req.params.id);
+            await ProductService.delete(req.params.id);
             res.status(200).json({ msg: "Produto removido com sucesso" });
         } catch (error) {
             res.status(error.statusCode || 400).json({ message: error.message });
