@@ -21,7 +21,16 @@ const userController = {
 
     loginCPF: async (req, res) => {
         try {
-            const token = await UserService.loginWithCPF(req.params.cpf);
+            const response = await UserService.loginWithCPF(req.params.cpf);
+            res.json({ auth: true, response });
+        } catch (error) {
+            res.status(error.statusCode || 500).json({ message: error.message });
+        }
+    },
+
+    forgotPassword: async (req, res) => {
+        try {
+            const token = await UserService.forgotPassword(req.body.email);
             res.json({ auth: true, token });
         } catch (error) {
             res.status(error.statusCode || 500).json({ message: error.message });

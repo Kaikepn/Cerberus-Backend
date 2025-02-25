@@ -3,6 +3,8 @@ import { Log } from "../models/Log.js"
 import { jwtController } from "../middlewares/jwtConfig.js"
 import apiErrors from "../classes/apiErrors.js"
 import bcrypt from "bcrypt"
+import nodemailer from "nodemailer"
+import bodyParser from "body-parser"
 
 class UserService {
     static async create(userData) {
@@ -31,10 +33,9 @@ class UserService {
     }
 
     static async loginWithCPF(cpf) {
-        console.log(cpf)
-        const userFound = await this.checkCPF(cpf, cpf.slice(-3));
-        if (!userFound) throw new apiErrors("CPF inválido", 401);
-        return jwtController.sign(userFound._id);
+        const foundUser = await this.checkCPF(cpf, cpf.slice(-3));
+        if (!foundUser) throw new apiErrors("CPF inválido", 401);
+        return ["token: " + jwtController.sign(foundUser._id), "user: "+foundUser._id];
     }
 
     static async getAll() {
@@ -71,6 +72,57 @@ class UserService {
             if (await bcrypt.compare(cpf, user.cpf)) return user;
         }
         return null;
+    }
+
+    static async forgotPassword(email) {
+        const foundUser = await User.findOne({ email });
+        if (!foundUser) {
+            throw new apiErrors("Email não encontrado", 404);
+        }
+
+        const token = crypto.randomBytes(20).toString('hex');
+        foundUser.resetToken = token; 
+        await foundUser.save();
+
+        await this.sendEmail(email, token);
+        return "Verifique seu email para alterar a senha";
+    }
+
+    static async getResetPassword(token) {
+        const user = await User.findOne({ resetToken: token });
+        if (user) {
+            return '<form method="post" action="/reset-password"><input type="password" name="password" required><input type="submit" value="Reset Password"></form>';
+        } else {
+            throw new apiErrors("Invalid or expired token", 404);
+        }
+    }
+
+    static async resetPassword(token, data) {
+        const user = await User.findOne({ resetToken: token });
+        if (user) {
+            user.password = await bcrypt.hash(data.password, 10);
+            user.resetToken = undefined;
+            await user.save();
+            return "Senha alterada com sucesso!";
+        } else {
+            throw new apiErrors("token inválido ou expirado", 404);
+        }
+    }
+
+    static async sendEmail(email, token) {
+        const transporter = nodemailer.createTransport({
+        service: 'gmail',
+        auth: {
+            user: 'your-email@gmail.com',
+            pass: 'your-email-password',
+        },
+        });
+        const mailOptions = {
+        from: 'your-email@gmail.com',
+        to: email,
+        subject: 'Password Reset',
+        text: `Click the following link to reset your password: http://localhost:3000/reset-password/${token}`,
+        };
     }
 }
 

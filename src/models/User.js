@@ -10,6 +10,7 @@ const userSchema = new mongoose.Schema({
     metalDiscarted: {type: Number, default: 0, required: false},
     plasticDiscarted: {type: Number, default: 0, required: false},
     points: {type: Number, default: 0, required: false},
+    resetToken: {type: String, required: false}
     //isAdmin
 }, {versionKey: false});
 

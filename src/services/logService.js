@@ -63,7 +63,6 @@ class LogService {
 
     static async listByRedeemed(userId) {
         const log = await Log.find({ user: userId, redeemed: true });
-        console.log()
         if (log.length === 0) throw new apiErrors("Nenhum produtro foi resgatado", 404);
         return log;
     }
