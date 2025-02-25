@@ -8,6 +8,7 @@ const routes = express.Router();
 routes.post("/product", verifyJWT, upload.single("img"), productController.create);
 routes.get("/product", verifyJWT,  productController.list);
 routes.get("/product/data", verifyJWT, productController.listData);
+routes.get("/product/inactive", verifyJWT,  productController.listInactive);
 routes.get("/product/:id", verifyJWT, productController.listOne);
 routes.put("/product/:id", verifyJWT, productController.update);
 routes.delete("/product/:id", verifyJWT, productController.delete)

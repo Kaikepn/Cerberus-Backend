@@ -2,6 +2,7 @@ import LogService from "../services/logService.js";
 
 const logController = {
     create: async (req, res) => {
+        console.log(req.body)
         try {
             await LogService.create(req.body);
             res.status(201).json({ msg: "Log criado com sucesso!" });

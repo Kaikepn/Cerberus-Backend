@@ -62,15 +62,14 @@ class LogService {
     }
 
     static async listByRedeemed(userId) {
-        console.log(userId)
         const log = await Log.find({ user: userId, redeemed: true });
         console.log()
         if (log.length === 0) throw new apiErrors("Nenhum produtro foi resgatado", 404);
         return log;
     }
 
-    static async listByNotRedeemed(code) {
-        const log = await Log.find({ redeemed: false });
+    static async listByNotRedeemed(userId) {
+        const log = await Log.find({ user: userId, redeemed: false });
         if (log.length === 0) throw new apiErrors("Nenhuma troca foi realizada ", 404);
         return log;
     }
