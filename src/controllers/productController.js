@@ -6,6 +6,8 @@ const productController = {
             await ProductService.create(req.body, req.file);
             res.status(201).json({ msg: "Produto adicionado com sucesso!" });
         } catch (error) {
+            if (error.message.includes("name_1 dup key:")) 
+                return res.status(400).json({ message: `Falha ao cadastrar produto: produto com esse nome já cadastrado.`});
             res.status(400).json({ message: error.message });
         }
     },

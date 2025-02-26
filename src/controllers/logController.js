@@ -47,6 +47,15 @@ const logController = {
         }
     },
 
+    getTrash: async (req, res) => {
+        try {
+            const log = await LogService.getTrash();
+            res.json(log);
+        } catch (error) {
+            res.status(error.statusCode || 400).json({ message: error.message });
+        }
+    },
+
     update: async (req, res) => {
         try {
             const log = await LogService.update(req.params.id);

@@ -75,13 +75,14 @@ class UserService {
     }
 
     static async forgotPassword(email) {
+        console.log("a")
         const foundUser = await User.findOne({ email });
-        if (!foundUser) {
-            throw new apiErrors("Email não encontrado", 404);
-        }
-
-        const token = crypto.randomBytes(20).toString('hex');
+        if (!foundUser) throw new apiErrors("Email não encontrado", 404);
+        console.log("b")
+        let token = await bcrypt.hash(email, 10);
+        console.log("c")
         foundUser.resetToken = token; 
+        console.log("d")
         await foundUser.save();
 
         await this.sendEmail(email, token);
@@ -90,39 +91,48 @@ class UserService {
 
     static async getResetPassword(token) {
         const user = await User.findOne({ resetToken: token });
-        if (user) {
-            return '<form method="post" action="/reset-password"><input type="password" name="password" required><input type="submit" value="Reset Password"></form>';
-        } else {
-            throw new apiErrors("Invalid or expired token", 404);
-        }
+        if (!user) throw new apiErrors("Invalid or expired token", 404);
+        return '<form method="post" action="/reset-password"><input type="password" name="password" required><input type="submit" value="Reset Password"></form>';
+  
     }
 
     static async resetPassword(token, data) {
         const user = await User.findOne({ resetToken: token });
-        if (user) {
-            user.password = await bcrypt.hash(data.password, 10);
-            user.resetToken = undefined;
-            await user.save();
-            return "Senha alterada com sucesso!";
-        } else {
-            throw new apiErrors("token inválido ou expirado", 404);
-        }
+        if (!user) throw new apiErrors("token inválido ou expirado", 404);
+        user.password = await bcrypt.hash(data.password, 10);
+        user.resetToken = undefined;
+        await user.save();
+        return "Senha alterada com sucesso!";
     }
 
     static async sendEmail(email, token) {
-        const transporter = nodemailer.createTransport({
-        service: 'gmail',
-        auth: {
-            user: 'your-email@gmail.com',
-            pass: 'your-email-password',
-        },
-        });
+        console.log(process.env.email)
+        console.log(email)
+
+        var transporter = nodemailer.createTransport({
+            host: "sandbox.smtp.mailtrap.io",
+            port: 2525,
+            auth: {
+              user: "aa7f7633c5e3d6",
+              pass: "381fcb697de796"
+            }
+          });
+
         const mailOptions = {
-        from: 'your-email@gmail.com',
+        from: process.env.email,
         to: email,
         subject: 'Password Reset',
-        text: `Click the following link to reset your password: http://localhost:3000/reset-password/${token}`,
+        text: `Click the following link to reset your password: http://localhost:3000//user/forgot/${token}`,
         };
+        try {
+            transporter.sendMail(mailOptions);
+            console.log(transporter)
+            console.log(mailOptions)
+
+            console.log(`Email sent`);
+        } catch (error) {
+            console.log(`Error sending email: ${error}`);
+        }
     }
 }
 

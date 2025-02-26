@@ -1,4 +1,5 @@
 import UserService from "../services/userService.js";
+import apiErrors from "../classes/apiErrors.js"
 
 const userController = {
     create: async (req, res) => {
@@ -6,6 +7,7 @@ const userController = {
             const user = await UserService.create(req.body);
             res.status(201).json({ message: "Usuário criado com sucesso!"});
         } catch (error) {
+            if (error.message.includes("email_1 dup key:")) return res.status(400).json({ message: `Falha ao cadastrar usuário: email já cadastrado.`});
             res.status(error.statusCode || 500).json({ message: error.message });
         }
     },
@@ -20,6 +22,7 @@ const userController = {
     },
 
     loginCPF: async (req, res) => {
+        console.log(req.params)
         try {
             const response = await UserService.loginWithCPF(req.params.cpf);
             res.json({ auth: true, response });
@@ -36,6 +39,20 @@ const userController = {
             res.status(error.statusCode || 500).json({ message: error.message });
         }
     },
+    
+    resetPassword: async (req, res) => {
+        try {
+            const token = req.params.token;  // Pega o token da URL
+            const formHtml = await UserService.getResetPassword(token);  // Obtém o HTML do formulário
+            
+            // Retorna o HTML como resposta
+            res.send(formHtml);  // Envia o HTML para o cliente
+            
+        } catch (error) {
+            res.status(error.statusCode || 500).json({ message: error.message });
+        }
+    },
+    
 
     list: async (req, res) => {
         try {

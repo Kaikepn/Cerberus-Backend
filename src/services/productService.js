@@ -3,6 +3,21 @@ import { Log } from "../models/Log.js"
 import apiErrors from "../classes/apiErrors.js";
 
 class ProductService {
+
+    static async create(data, file) {
+        if (!file) {
+            throw new apiErrors("Imagem é obrigatória", 400);
+        }
+        const newProduct = new Product({
+            ...data,
+            img: {
+                data: file.buffer,
+                contentType: file.mimetype,
+            }
+        });
+        await newProduct.save();
+    }
+
     static async list() {
         const productList = await Product.find({ isActive: true });
         if (productList.length === 0) {
@@ -38,20 +53,6 @@ class ProductService {
             throw new apiErrors("ID não encontrado", 404);
         }
         return product;
-    }
-
-    static async create(data, file) {
-        if (!file) {
-            throw new apiErrors("Imagem é obrigatória", 400);
-        }
-        const newProduct = new Product({
-            ...data,
-            img: {
-                data: file.buffer,
-                contentType: file.mimetype,
-            }
-        });
-        await newProduct.save();
     }
 
     static async update(id, updateData) {

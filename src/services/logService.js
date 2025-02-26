@@ -80,6 +80,31 @@ class LogService {
         }
         return product;
     }
+
+    static async getTrash() {
+        const log = await Log.find({ product: null});
+        if (log.length === 0) throw new apiErrors("Nenhum produtro foi resgatado", 404);
+        let totalPlastic = 0
+        let totalMetal = 0
+        let totalDiscarted = 0
+        let totalPoints = 0
+        for(let i = 0 ; i < log.length; i++){
+            totalPlastic += parseInt(log[i].plasticDiscarted)
+            totalMetal+= parseInt(log[i].metalDiscarted)
+            totalPoints += parseInt(log[i].points)
+        }
+        totalDiscarted = totalPlastic + totalMetal
+        const response = {
+            "discartedPlastic": totalPlastic,
+            "discartedMetal": totalMetal,
+            "totalDiscardedWaste": totalDiscarted,
+            "totalPoints": totalPoints
+        };
+        
+        return response;
+        
+        
+    }
 }
 
 export default LogService;
