@@ -74,17 +74,21 @@ class UserService {
         return null;
     }
 
+    // static async updatePassword(token, data) {
+    //     const user = await User.findOne({ resetToken: token });
+    //     if (!user) throw new apiErrors("Usuário não encontrado.", 404);
+    //     if(!data.password) data.password = await bcrypt.hash(data.password, 10);
+    //     user.password = data.password;
+    //     user.save();
+    //     return user;
+    // }
+
     static async forgotPassword(email) {
-        console.log("a")
         const foundUser = await User.findOne({ email });
         if (!foundUser) throw new apiErrors("Email não encontrado", 404);
-        console.log("b")
-        let token = await bcrypt.hash(email, 10);
-        console.log("c")
+       const token = jwt.sign({ email }, process.env.JWT_SECRET, { expiresIn: '10m' });
         foundUser.resetToken = token; 
-        console.log("d")
         await foundUser.save();
-
         await this.sendEmail(email, token);
         return "Verifique seu email para alterar a senha";
     }
@@ -92,18 +96,40 @@ class UserService {
     static async getResetPassword(token) {
         const user = await User.findOne({ resetToken: token });
         if (!user) throw new apiErrors("Invalid or expired token", 404);
-        return '<form method="post" action="/reset-password"><input type="password" name="password" required><input type="submit" value="Reset Password"></form>';
-  
-    }
+    
+        const userId = user._id;
 
-    static async resetPassword(token, data) {
-        const user = await User.findOne({ resetToken: token });
-        if (!user) throw new apiErrors("token inválido ou expirado", 404);
-        user.password = await bcrypt.hash(data.password, 10);
-        user.resetToken = undefined;
-        await user.save();
-        return "Senha alterada com sucesso!";
+        return `
+            <form method="post" action="/reset-password">
+                <input type="password" name="password" required>
+                <input type="hidden" name="userId" value="${userId}"> <!-- Campo oculto com userId -->
+                <input type="hidden" name="token" value="${token}"> <!-- Campo oculto com token -->
+                <input type="submit" value="Reset Password">
+            </form>`;
     }
+    
+
+    static async updatePassword(token, newPassword) {
+        const foundUser = await User.findOne({ resetToken: token });
+        if (!foundUser) throw new apiErrors("Token inválido ou expirado", 404);
+        
+        try {
+            const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    
+            const hashedPassword = await bcrypt.hash(newPassword, 10);
+            foundUser.password = hashedPassword;
+            
+            foundUser.resetToken = undefined;
+            await foundUser.save();
+            
+            return "Senha alterada com sucesso!";
+        } catch (error) {
+            foundUser.resetToken = undefined;
+            await foundUser.save();
+            throw new apiErrors("Token expirado", 404);
+        }
+    }
+    
 
     static async sendEmail(email, token) {
         console.log(process.env.email)
@@ -118,12 +144,24 @@ class UserService {
             }
           });
 
-        const mailOptions = {
-        from: process.env.email,
-        to: email,
-        subject: 'Password Reset',
-        text: `Click the following link to reset your password: http://localhost:3000//user/forgot/${token}`,
+          const mailOptions = {
+            from: process.env.email,
+            to: email,
+            subject: 'Recuperar a senha',
+            html: `
+                <html>
+                    <body>
+                        <h2>Alterar a senha</h2>
+                        <p>Clique no botão abaixo para alterar a senha</p>
+                        <a href="http://localhost:5173/ResetPassword/${token}" style="display: inline-block; padding: 10px 20px; background-color: #4CAF50; color: white; text-align: center; border-radius: 5px; text-decoration: none; font-weight: bold;">
+                            Alterar a senha
+                        </a>
+                        <p>Ignore este email caso não tenha solicitado a alteração da senha</p>
+                    </body>
+                </html>
+            `,
         };
+        
         try {
             transporter.sendMail(mailOptions);
             console.log(transporter)
@@ -137,5 +175,4 @@ class UserService {
 }
 
 export default UserService;
-
 

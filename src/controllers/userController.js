@@ -39,6 +39,15 @@ const userController = {
             res.status(error.statusCode || 500).json({ message: error.message });
         }
     },
+
+    updatePassword: async (req, res) => {
+        try {
+            const user = await UserService.updatePassword(req.params.token, req.body);
+            res.json({ message: "Usuário atualizado com sucesso!" });
+        } catch (error) {
+            res.status(error.statusCode || 500).json({ message: error.message });
+        }
+    },
     
     resetPassword: async (req, res) => {
         try {

@@ -15,15 +15,15 @@ class LogService {
         const updatedPoints = parseInt(foundUser.points) + parseInt(logData.points);
         if (updatedPoints < 0) throw new apiErrors("Saldo inválido.", 400);
         
-        let plasticDiscarted = parseInt(foundUser.plasticDiscarted) || 0;
-        let metalDiscarted = parseInt(foundUser.metalDiscarted) || 0;
+        let plasticDiscarded = parseInt(foundUser.plasticDiscarded) || 0;
+        let metalDiscarded = parseInt(foundUser.metalDiscarded) || 0;
         
-        if (logData.plasticDiscarted) plasticDiscarted += parseInt(logData.plasticDiscarted);
-        if (logData.metalDiscarted) metalDiscarted += parseInt(logData.metalDiscarted);
+        if (logData.plasticDiscarded) plasticDiscarded += parseInt(logData.plasticDiscarded);
+        if (logData.metalDiscarded) metalDiscarded += parseInt(logData.metalDiscarded);
         
         const updatedUser = await User.findByIdAndUpdate(
             foundUser._id,
-            { points: updatedPoints, metalDiscarted, plasticDiscarted },
+            { points: updatedPoints, metalDiscarded, plasticDiscarded },
             { new: true }
         );
         
@@ -86,18 +86,19 @@ class LogService {
         if (log.length === 0) throw new apiErrors("Nenhum produtro foi resgatado", 404);
         let totalPlastic = 0
         let totalMetal = 0
-        let totalDiscarted = 0
+        let totalDiscarded = 0
         let totalPoints = 0
         for(let i = 0 ; i < log.length; i++){
-            totalPlastic += parseInt(log[i].plasticDiscarted)
-            totalMetal+= parseInt(log[i].metalDiscarted)
+            totalPlastic += parseInt(log[i].plasticDiscarded)
+            totalMetal+= parseInt(log[i].metalDiscarded)
             totalPoints += parseInt(log[i].points)
         }
-        totalDiscarted = totalPlastic + totalMetal
+        console.log(plasticDiscarded)
+        totalDiscarded = totalPlastic + totalMetal
         const response = {
-            "discartedPlastic": totalPlastic,
-            "discartedMetal": totalMetal,
-            "totalDiscardedWaste": totalDiscarted,
+            "discardedPlastic": totalPlastic,
+            "discardedMetal": totalMetal,
+            "totalDiscardedWaste": totalDiscarded,
             "totalPoints": totalPoints
         };
         
