@@ -4,7 +4,6 @@ import { jwtController } from "../middlewares/jwtConfig.js"
 import apiErrors from "../classes/apiErrors.js"
 import bcrypt from "bcrypt"
 import nodemailer from "nodemailer"
-import bodyParser from "body-parser"
 
 class UserService {
     static async create(userData) {
@@ -73,33 +72,8 @@ class UserService {
         }
         return null;
     }
-    
 
-    // static async updatePassword(token, data) {
-    //     const user = await User.findOne({ resetToken: token });
-    //     if (!user) throw new apiErrors("Usuário não encontrado.", 404);
-    //     if(!data.password) data.password = await bcrypt.hash(data.password, 10);
-    //     user.password = data.password;
-    //     user.save();
-    //     return user;
-    // }
-
-    // static async forgotPassword(email) {
-    //     const foundUser = await User.findOne({ email });
-    //     if (!foundUser) throw new apiErrors("Email não encontrado", 404);
-    //    const token = jwtController.sign({ email }, process.env.JWT_SECRET, { expiresIn: '1h' });
-    //     foundUser.resetToken = token; 
-    //     await foundUser.save();
-    //     await this.sendEmail(email, token);
-    //     return "Verifique seu email para alterar a senha";
-    // }
-
-    // Função de geração de token com expiração (10 minutos)
-    
-
-    // Usando a função para gerar o token no método forgotPassword
     static async forgotPassword(email) {
-        // Função para gerar um token de 8 caracteres aleatórios
         const generateToken = (length = 8) => {
             const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
             let token = '';
@@ -110,19 +84,19 @@ class UserService {
         };
 
         const foundUser = await User.findOne({ email });
-        if (!foundUser) throw new apiErrors("Email não encontrado", 404);
+        const expiryMinutes = 10
 
-        // Gerar um token de 8 caracteres
-        const token = generateToken(8);  // Chamada para a função que gera o token de 8 caracteres
-        
+        if (!foundUser) throw new apiErrors("Email não encontrado", 404);
+        const token = generateToken(8); 
         foundUser.resetToken = token; 
+        const expirationDate = new Date();
+        foundUser.tokenExpirationDate = expirationDate.setMinutes(expirationDate.getMinutes() + expiryMinutes);
         await foundUser.save();
 
-        await this.sendEmail(email, token);  // Envia o token por email (via função de envio)
-        
+        await this.sendEmail(email, token);  
+
         return "Verifique seu email para alterar a senha";
     }
-
 
     static async getResetPassword(token) {
         const user = await User.findOne({ resetToken: token });
@@ -139,38 +113,28 @@ class UserService {
             </form>`;
     }
     
-
-    
     static async updatePassword(token, newPassword) {
     const foundUser = await User.findOne({ resetToken: token });
     if (!foundUser) throw new apiErrors("Token inválido ou expirado", 404);
 
     const currentTime = new Date();
     if (foundUser.tokenExpirationDate < currentTime) {
-        // Token expirado
         foundUser.resetToken = undefined;
         foundUser.tokenExpirationDate = undefined;
         await foundUser.save();
         throw new apiErrors("Token expirado", 404);
     }
     console.log(currentTime)
-    // Processo de atualização de senha (sem mudanças adicionais)
-    console.log(newPassword)
     const hashedPassword = await bcrypt.hash(newPassword, 10);
-    console.log("b")
     foundUser.password = hashedPassword;
     foundUser.resetToken = undefined;
     foundUser.tokenExpirationDate = undefined;
     await foundUser.save();
 
     return "Senha alterada com sucesso!";
-    }
+    }    
     
-    
-
     static async sendEmail(email, token) {
-        console.log(process.env.email)
-        console.log(email)
 
         var transporter = nodemailer.createTransport({
             host: "sandbox.smtp.mailtrap.io",
@@ -201,12 +165,10 @@ class UserService {
         
         try {
             transporter.sendMail(mailOptions);
-            console.log(transporter)
-            console.log(mailOptions)
 
-            console.log(`Email sent`);
+            console.log("email enviado.")
         } catch (error) {
-            console.log(`Error sending email: ${error}`);
+            throw new apiErrors("Ocorreu um erro ao enviar o email", 500)
         }
     }
 }
