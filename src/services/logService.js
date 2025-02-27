@@ -93,7 +93,6 @@ class LogService {
             totalMetal+= parseInt(log[i].metalDiscarded)
             totalPoints += parseInt(log[i].points)
         }
-        console.log(plasticDiscarded)
         totalDiscarded = totalPlastic + totalMetal
         const response = {
             "discardedPlastic": totalPlastic,

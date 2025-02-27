@@ -73,6 +73,7 @@ class UserService {
         }
         return null;
     }
+    
 
     // static async updatePassword(token, data) {
     //     const user = await User.findOne({ resetToken: token });
@@ -83,15 +84,45 @@ class UserService {
     //     return user;
     // }
 
+    // static async forgotPassword(email) {
+    //     const foundUser = await User.findOne({ email });
+    //     if (!foundUser) throw new apiErrors("Email não encontrado", 404);
+    //    const token = jwtController.sign({ email }, process.env.JWT_SECRET, { expiresIn: '1h' });
+    //     foundUser.resetToken = token; 
+    //     await foundUser.save();
+    //     await this.sendEmail(email, token);
+    //     return "Verifique seu email para alterar a senha";
+    // }
+
+    // Função de geração de token com expiração (10 minutos)
+    
+
+    // Usando a função para gerar o token no método forgotPassword
     static async forgotPassword(email) {
+        // Função para gerar um token de 8 caracteres aleatórios
+        const generateToken = (length = 8) => {
+            const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+            let token = '';
+            for (let i = 0; i < length; i++) {
+                token += characters.charAt(Math.floor(Math.random() * characters.length));
+            }
+            return token;
+        };
+
         const foundUser = await User.findOne({ email });
         if (!foundUser) throw new apiErrors("Email não encontrado", 404);
-       const token = jwt.sign({ email }, process.env.JWT_SECRET, { expiresIn: '10m' });
+
+        // Gerar um token de 8 caracteres
+        const token = generateToken(8);  // Chamada para a função que gera o token de 8 caracteres
+        
         foundUser.resetToken = token; 
         await foundUser.save();
-        await this.sendEmail(email, token);
+
+        await this.sendEmail(email, token);  // Envia o token por email (via função de envio)
+        
         return "Verifique seu email para alterar a senha";
     }
+
 
     static async getResetPassword(token) {
         const user = await User.findOne({ resetToken: token });
@@ -109,26 +140,32 @@ class UserService {
     }
     
 
-    static async updatePassword(token, newPassword) {
-        const foundUser = await User.findOne({ resetToken: token });
-        if (!foundUser) throw new apiErrors("Token inválido ou expirado", 404);
-        
-        try {
-            const decoded = jwt.verify(token, process.env.JWT_SECRET);
     
-            const hashedPassword = await bcrypt.hash(newPassword, 10);
-            foundUser.password = hashedPassword;
-            
-            foundUser.resetToken = undefined;
-            await foundUser.save();
-            
-            return "Senha alterada com sucesso!";
-        } catch (error) {
-            foundUser.resetToken = undefined;
-            await foundUser.save();
-            throw new apiErrors("Token expirado", 404);
-        }
+    static async updatePassword(token, newPassword) {
+    const foundUser = await User.findOne({ resetToken: token });
+    if (!foundUser) throw new apiErrors("Token inválido ou expirado", 404);
+
+    const currentTime = new Date();
+    if (foundUser.tokenExpirationDate < currentTime) {
+        // Token expirado
+        foundUser.resetToken = undefined;
+        foundUser.tokenExpirationDate = undefined;
+        await foundUser.save();
+        throw new apiErrors("Token expirado", 404);
     }
+    console.log(currentTime)
+    // Processo de atualização de senha (sem mudanças adicionais)
+    console.log(newPassword)
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    console.log("b")
+    foundUser.password = hashedPassword;
+    foundUser.resetToken = undefined;
+    foundUser.tokenExpirationDate = undefined;
+    await foundUser.save();
+
+    return "Senha alterada com sucesso!";
+    }
+    
     
 
     static async sendEmail(email, token) {

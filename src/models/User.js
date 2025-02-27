@@ -7,10 +7,11 @@ const userSchema = new mongoose.Schema({
     username: {type: String, required: true},
     email: {type: String, required: true, unique: true},
     password: {type: String, required: true},
-    metalDiscarted: {type: Number, default: 0, required: false},
-    plasticDiscarted: {type: Number, default: 0, required: false},
+    metalDiscarded: {type: Number, default: 0, required: false},
+    plasticDiscarded: {type: Number, default: 0, required: false},
     points: {type: Number, default: 0, required: false},
-    resetToken: {type: String, required: false}
+    resetToken: {type: String, required: false},
+    tokenExpirationDate: { type: Date, required: false }
     //isAdmin
 }, {versionKey: false});
 
