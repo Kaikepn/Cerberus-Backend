@@ -7,6 +7,7 @@ import nodemailer from "nodemailer"
 
 class UserService {
     static async create(userData) {
+        
         const { cpf, password } = userData;
         const lastThreeDigits = cpf.slice(-3);
         const userFound = await this.checkCPF(cpf, lastThreeDigits);
@@ -124,7 +125,6 @@ class UserService {
         await foundUser.save();
         throw new apiErrors("Token expirado", 404);
     }
-    console.log(currentTime)
     const hashedPassword = await bcrypt.hash(newPassword, 10);
     foundUser.password = hashedPassword;
     foundUser.resetToken = undefined;
@@ -137,16 +137,14 @@ class UserService {
     static async sendEmail(email, token) {
 
         var transporter = nodemailer.createTransport({
-            host: "sandbox.smtp.mailtrap.io",
-            port: 2525,
+            host: "smtp.gmail.com",
             auth: {
-              user: "aa7f7633c5e3d6",
-              pass: "381fcb697de796"
+              user: process.env.email,
+              pass: process.env.emailPassword
             }
           });
 
           const mailOptions = {
-            from: process.env.email,
             to: email,
             subject: 'Recuperar a senha',
             html: `
@@ -164,7 +162,7 @@ class UserService {
         };
         
         try {
-            transporter.sendMail(mailOptions);
+            await transporter.sendMail(mailOptions);
 
             console.log("email enviado.")
         } catch (error) {

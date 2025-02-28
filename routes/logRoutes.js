@@ -4,8 +4,8 @@ import { verifyJWT } from "../src/middlewares/jwtConfig.js";
 
 const routes = express.Router();
 
-routes.post("/log", verifyJWT , logController.create)
 routes.get("/log", logController.getTrash)
+routes.post("/log", verifyJWT , logController.create)
 routes.get("/log/:userId", verifyJWT, logController.list)
 routes.get("/log/redeemed/:userId", verifyJWT, logController.listByRedeemed)
 routes.get("/log/not/redeemed/:userId", verifyJWT, logController.listByNotRedeemed)
