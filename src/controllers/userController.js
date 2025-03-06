@@ -82,6 +82,8 @@ const userController = {
             const user = await UserService.update(req.params.id, req.body);
             res.json({ message: "Usuário atualizado com sucesso!" });
         } catch (error) {
+            if (error.message.includes("email_1 dup key:")) 
+                return res.status(400).json({ message: `Falha ao atualizar usuário: email já cadastrado.`});
             res.status(error.statusCode || 500).json({ message: error.message });
         }
     },
