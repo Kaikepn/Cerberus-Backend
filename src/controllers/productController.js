@@ -44,6 +44,8 @@ const productController = {
             const product = await ProductService.getById(req.params.id);
             res.json(product);
         } catch (error) {
+            if (error.message.includes("name_1 dup key:")) 
+                return res.status(400).json({ message: `Falha ao atualizar produto: produto com esse nome já cadastrado.`});
             res.status(error.statusCode || 500).json({ message: error.message });
         }
     },
