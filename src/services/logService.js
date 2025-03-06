@@ -44,7 +44,7 @@ class LogService {
             logData.code = hash.substring(hash.length - 5);
             logData.redeemed = false;
         }
-        
+                
         logData.updatedUser = updatedUser;
         return await Log.create(logData);
     }
@@ -102,8 +102,7 @@ class LogService {
         };
         
         return response;
-        
-        
+                
     }
 }
 
